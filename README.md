@@ -1,1 +1,0 @@
-# Look-Up-Intersection-Finder
