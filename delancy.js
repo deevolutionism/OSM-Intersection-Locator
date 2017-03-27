@@ -15,7 +15,7 @@ const _ = require('lodash');
 var parser = new xml2js.Parser();
 
 // read .osm file
-fs.readFile('./data/map_large.osm', function(err, data) {
+fs.readFile('../data/map_large.osm', function(err, data) {
   /* returns intersections output */
 
     //xml to json
@@ -55,12 +55,13 @@ var fromWays = (result) => {
   var ways = result.osm.way
 
   ways.forEach( ( way ) => {
+
     if(way.tag){
-
+      console.log(way.tag[2].$)
+      // if(way.tag[2].$.v == 'Delancey Street'){
       way.tag.forEach( ( tag ) => {
-
         if(tag.$.k == 'highway'){
-
+          // console.log(inspect(way))
           if(tag.$.v == 'primary' || tag.$.v == 'secondary' ||
              tag.$.v == 'motorway' || tag.$.v == 'trunk' ||
              tag.$.v == 'tertiary' || tag.$.v == 'residential' ||
@@ -73,7 +74,10 @@ var fromWays = (result) => {
            }
         }
       });
+      // }
+
     }
+
   });
 
   console.log(`${highways.length} ways`);
