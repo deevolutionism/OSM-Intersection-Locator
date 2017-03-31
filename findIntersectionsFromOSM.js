@@ -5,6 +5,20 @@ gets the node references from each highway
 finds all the shared nodes from each highway
 Outputs lat lon coordinate pairs from shared nodes.
 */
+
+
+/*
+Some streets have duplicate references to a node
+the duplicate refences must be removed from each
+individual street before the findintersections function
+is called. Otherwise, this will lead to eroneous lat lon
+coordinates. The findintersections function assumes
+that duplicate node refs are an intersection, but doesn't
+take into account if the node refs are from different ways.
+duplicate node refs from the same way will therefor count
+as an intersection.
+*/
+
 "use strict"
 const fs = require('fs');
 const xml2js = require('xml2js');
@@ -14,18 +28,20 @@ const _ = require('lodash');
 
 var parser = new xml2js.Parser();
 
+var dict = ['street_names':{}]
+
 // read .osm file
-fs.readFile('./data/map_large.osm', function(err, data) {
+fs.readFile('../data/map.osm', function(err, data) {
   /* returns intersections output */
 
     //xml to json
     parser.parseString(data, function (err, result) {
-
+      getLatLon(findIntersections(fromWays(result),fromNodes(result)))
         //get intersection lat lon coords and output to text file
-        fs.writeFile('latlon.txt',getLatLon(findIntersections(fromWays(result),fromNodes(result))) , (err) => {
-          if (err) throw err;
-          console.log('It\'s saved!');
-        });
+        // fs.writeFile('latlon.txt',getLatLon(findIntersections(fromWays(result),fromNodes(result))) , (err) => {
+        //   if (err) throw err;
+        //   console.log('It\'s saved!');
+        // });
 
     });
 });
@@ -33,6 +49,8 @@ fs.readFile('./data/map_large.osm', function(err, data) {
 
 var getLatLon = (intersections) => {
   /* returns lat lon coordinates */
+  console.log('intersections:')
+  console.log(intersections)
   var count = 0
   var latlonlist = ''
   intersections.forEach( (intersection) => {
@@ -56,28 +74,57 @@ var fromWays = (result) => {
 
   ways.forEach( ( way ) => {
     if(way.tag){
-
       way.tag.forEach( ( tag ) => {
-
         if(tag.$.k == 'highway'){
-
           if(tag.$.v == 'primary' || tag.$.v == 'secondary' ||
              tag.$.v == 'motorway' || tag.$.v == 'trunk' ||
              tag.$.v == 'tertiary' || tag.$.v == 'residential' ||
              tag.$.v == 'service' || tag.$.v == 'unclassified' ||
              tag.$.v == 'road' || tag.$.v == 'living_street'
-            //  tag.$.v == 'footway'
-            //  tag.$.v == 'motorway_link' || tag.$.v == 'primary_link'
            ) {
              highways.push(way);
-           }
+            //  console.log(way)
+  }}});}});
+
+  //create a dictionary of all the streets. Eliminate duplicate node references from each street.
+  /*
+  {
+    street_name: [array_of_node_refs]
+    delancey: [],
+    prospect: [],
+    laffayette: [],
+    ...
+  }
+  */
+  highways.forEach( (highway) => {
+    if(highway.tag){
+      for(var i = 0; i<highway.tag.length;i++){
+        if(highway.tag[i].$.k == 'name'){
+          var street_name = highway.tag[i].$.v
+          console.log(street_name)
+          if(dict.street_names[street_name] == undefined){
+              dict.street_names[street_name] = []
+              highway.nd.forEach( (obj) => {
+                dict.street_names[street_name].push(obj.$.ref)
+              })
+          } else {
+            if(highway.nd){
+              highway.nd.forEach( (obj) => {
+                dict.street_names[street_name].push(obj.$.ref)
+              })
+            }
+          }
         }
-      });
+      }
     }
-  });
+  })
+
+  console.log(dict)
+
+  //sort each highway and remove any duplicates
+  highways.map( removeDuplicates(refs) )
 
   console.log(`${highways.length} ways`);
-
   return highways
 
 }
@@ -105,7 +152,7 @@ var fromNodes = (result) => {
 
 var findIntersections = (ways,nodes) => {
   /* takes highway refs and nodes, finds intersections*/
-
+  console.log(`Finding intersections from ${ways.length} ways and ${nodes.length} nodes`);
   //each way is composed of nodes.
   //find ways that share the same reference to a node.
   var refs = [] //
@@ -127,10 +174,34 @@ var findIntersections = (ways,nodes) => {
   })
 
   //then, pull the lat/long from that node reference
-  console.log(`got ${ways.length} ways and ${nodes.length} nodes!`)
 
+  // console.log(intersections.length)
   return intersections //return the intersections
 
+}
+
+var removeDuplicates = (nodes) => {
+
+  //sort through the array of nodes
+  var newArr = []
+
+  // for(var i = 0; i<nodes.length;i++){
+    //for each step, count upwards to find a match
+    //[1,1,2,3]
+    var i = 1;
+    for(var j = 0; j<nodes.length;j++){
+      //skip matching numbers
+      if( nodes[i] != nodes[j]){
+        //if the next number is differnt from the previous, add it.
+        newArr.push(nodes[j])
+      }
+      i++
+    // }
+  }
+  console.log(nodes.length)
+  console.log('===========')
+  console.log(newArr.length)
+  return nodes
 }
 
 var fromNodeReferencesFrom = (ways) => {
@@ -144,5 +215,21 @@ var fromNodeReferencesFrom = (ways) => {
     });
   });
 
-  return nodeReferences.slice().sort()
+  return nodeReferences.splice().sort()
+}
+
+var removeDuplicates = (obj) =>{
+  var newArr = []
+
+  var i = 1;
+  for(var j = 0; j<nodes.length;j++){
+    //skip matching numbers
+    if( nodes[i] != nodes[j]){
+      //if the next number is differnt from the previous, add it.
+      newArr.push(nodes[j])
+    }
+    i++
+  }
+
+  return newArr
 }

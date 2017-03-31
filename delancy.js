@@ -51,39 +51,71 @@ var fromWays = (result) => {
   /* sorts through ways to find only highways of certain types */
 
   var highways = [] //store highways
-
+  var nodes = []
   var ways = result.osm.way
-
+  var count = 0
   ways.forEach( ( way ) => {
 
-    if(way.tag){
-      console.log(way.tag[2].$)
-      // if(way.tag[2].$.v == 'Delancey Street'){
-      way.tag.forEach( ( tag ) => {
-        if(tag.$.k == 'highway'){
-          // console.log(inspect(way))
-          if(tag.$.v == 'primary' || tag.$.v == 'secondary' ||
-             tag.$.v == 'motorway' || tag.$.v == 'trunk' ||
-             tag.$.v == 'tertiary' || tag.$.v == 'residential' ||
-             tag.$.v == 'service' || tag.$.v == 'unclassified' ||
-             tag.$.v == 'road' || tag.$.v == 'living_street'
-            //  tag.$.v == 'footway'
-            //  tag.$.v == 'motorway_link' || tag.$.v == 'primary_link'
-           ) {
-             highways.push(way);
-           }
-        }
-      });
-      // }
+    if(delanceyStreet(way)){
+      // console.log(way)
+      count++
+
+      if(way.nd){
+        // refs = removeDuplicates(way.nd)
+        way.nd.forEach( (ref) => {
+          nodes.push(ref.$.ref)
+        })
+      }
 
     }
 
   });
 
-  console.log(`${highways.length} ways`);
-
+  // var noderefs = nodes.splice().sort()
+  nodes = removeDuplicates(nodes.sort())
+  console.log(count)
+  // console.log(`${highways.length} ways`);
+  // console.log(nodes.sort())
   return highways
 
+}
+
+var removeDuplicates = (nodes) => {
+
+  //sort through the array of nodes
+  var newArr = []
+
+  // for(var i = 0; i<nodes.length;i++){
+    //for each step, count upwards to find a match
+    //[1,1,2,3]
+    var i = 1;
+    for(var j = 0; j<nodes.length;j++){
+      //skip matching numbers
+      if( nodes[i] != nodes[j]){
+        //if the next number is differnt from the previous, add it.
+        newArr.push(nodes[j])
+      }
+      i++
+    // }
+  }
+  console.log(nodes.length)
+  console.log('===========')
+  console.log(newArr.length)
+  return nodes
+}
+
+var delanceyStreet = (way) => {
+  let delancey = false
+  if(way.tag){
+  for(var i = 0; i<way.tag.length;i++){
+    if(way.tag[i].$.k == 'name'){
+      if(way.tag[i].$.v == 'Delancey Street'){
+        delancey = true
+      }
+    }
+    }
+  }
+  return delancey
 }
 
 var fromNodes = (result) => {
