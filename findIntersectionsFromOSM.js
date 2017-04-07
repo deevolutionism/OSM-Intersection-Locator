@@ -28,7 +28,7 @@ const _ = require('lodash');
 
 var parser = new xml2js.Parser();
 
-var dict = ['street_names':{}]
+var dict = {'street_names':{}}
 
 // read .osm file
 fs.readFile('../data/map.osm', function(err, data) {
@@ -86,7 +86,7 @@ var fromWays = (result) => {
             //  console.log(way)
   }}});}});
 
-  //create a dictionary of all the streets. Eliminate duplicate node references from each street.
+  //create a dictionary of all the streets.
   /*
   {
     street_name: [array_of_node_refs]
@@ -103,11 +103,14 @@ var fromWays = (result) => {
           var street_name = highway.tag[i].$.v
           console.log(street_name)
           if(dict.street_names[street_name] == undefined){
+              //street isn't in the dictionary yet, so add it.
               dict.street_names[street_name] = []
+              // console.log(inspect(dict))
               highway.nd.forEach( (obj) => {
                 dict.street_names[street_name].push(obj.$.ref)
               })
           } else {
+            //street already exists in dictionary, add node refs to it.
             if(highway.nd){
               highway.nd.forEach( (obj) => {
                 dict.street_names[street_name].push(obj.$.ref)
@@ -119,11 +122,19 @@ var fromWays = (result) => {
     }
   })
 
-  console.log(dict)
-
+  // console.log(inspect(dict))
+  var cleanedHighways = []
   //sort each highway and remove any duplicates
-  highways.map( removeDuplicates(refs) )
+  // var cleanedHighways = dict.street_names.map( (street)=>{ removeDuplicatesFrom(street) })
+  for (var key in dict.street_names) {
+    if (dict.street_names.hasOwnProperty(key)) {
+      // var cleanedRefs = removeDuplicatesFrom(dict.street_names[key].sort(),key)
+      cleanedHighways.concat(removeDuplicatesFrom(dict.street_names[key].sort(),key))
 
+      console.log(cleanedHighways)
+    }
+  }
+  console.log(inspect(cleanedHighways))
   console.log(`${highways.length} ways`);
   return highways
 
@@ -180,28 +191,27 @@ var findIntersections = (ways,nodes) => {
 
 }
 
-var removeDuplicates = (nodes) => {
+var removeDuplicatesFrom = (street_node_refs,street_name) => {
 
   //sort through the array of nodes
   var newArr = []
-
-  // for(var i = 0; i<nodes.length;i++){
-    //for each step, count upwards to find a match
-    //[1,1,2,3]
-    var i = 1;
-    for(var j = 0; j<nodes.length;j++){
-      //skip matching numbers
-      if( nodes[i] != nodes[j]){
-        //if the next number is differnt from the previous, add it.
-        newArr.push(nodes[j])
-      }
-      i++
-    // }
+  //for each step, count upwards to find a match
+  //[1,1,2,3]
+  var i = 1;
+  for(var j = 0; j<street_node_refs.length;j++){
+    //skip matching numbers
+    if( street_node_refs[i] != street_node_refs[j]){
+      //if the next number is differnt from the previous, add it.
+      newArr.push(street_node_refs[j])
+    }
+    i++
   }
-  console.log(nodes.length)
-  console.log('===========')
-  console.log(newArr.length)
-  return nodes
+
+  // console.log(street_node_refs.length)
+  // console.log('===========')
+  // console.log(newArr.length)
+  console.log(`removed ${street_node_refs.length - newArr.length} duplicates from ${street_name}`)
+  return newArr
 }
 
 var fromNodeReferencesFrom = (ways) => {
@@ -218,18 +228,18 @@ var fromNodeReferencesFrom = (ways) => {
   return nodeReferences.splice().sort()
 }
 
-var removeDuplicates = (obj) =>{
-  var newArr = []
-
-  var i = 1;
-  for(var j = 0; j<nodes.length;j++){
-    //skip matching numbers
-    if( nodes[i] != nodes[j]){
-      //if the next number is differnt from the previous, add it.
-      newArr.push(nodes[j])
-    }
-    i++
-  }
-
-  return newArr
-}
+// var removeDuplicates = (obj) =>{
+//   var newArr = []
+//
+//   var i = 1;
+//   for(var j = 0; j<nodes.length;j++){
+//     //skip matching numbers
+//     if( nodes[i] != nodes[j]){
+//       //if the next number is differnt from the previous, add it.
+//       newArr.push(nodes[j])
+//     }
+//     i++
+//   }
+//
+//   return newArr
+// }

@@ -14,6 +14,8 @@ const _ = require('lodash');
 
 var parser = new xml2js.Parser();
 
+var dict = []
+
 // read .osm file
 fs.readFile('../data/map_large.osm', function(err, data) {
   /* returns intersections output */
@@ -54,20 +56,30 @@ var fromWays = (result) => {
   var nodes = []
   var ways = result.osm.way
   var count = 0
+
   ways.forEach( ( way ) => {
 
-    if(delanceyStreet(way)){
-      // console.log(way)
-      count++
+    if(way.tag){
+      for(var i = 0; i<way.tag.length;i++){
+        if(way.tag[i].$.k == 'name'){
+           way.tag[i].$.v
 
-      if(way.nd){
-        // refs = removeDuplicates(way.nd)
-        way.nd.forEach( (ref) => {
-          nodes.push(ref.$.ref)
-        })
+        }
       }
-
     }
+
+    // if(delanceyStreet(way)){
+    //   // console.log(way)
+    //   count++
+    //
+    //   if(way.nd){
+    //     // refs = removeDuplicates(way.nd)
+    //     way.nd.forEach( (ref) => {
+    //       nodes.push(ref.$.ref)
+    //     })
+    //   }
+    //
+    // }
 
   });
 
