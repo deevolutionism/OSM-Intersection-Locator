@@ -29,6 +29,7 @@ const _ = require('lodash');
 var parser = new xml2js.Parser();
 
 var dict = {'street_names':{}}
+var cleanedHighways = []
 
 // read .osm file
 fs.readFile('../data/map.osm', function(err, data) {
@@ -123,15 +124,13 @@ var fromWays = (result) => {
   })
 
   // console.log(inspect(dict))
-  var cleanedHighways = []
   //sort each highway and remove any duplicates
   // var cleanedHighways = dict.street_names.map( (street)=>{ removeDuplicatesFrom(street) })
   for (var key in dict.street_names) {
     if (dict.street_names.hasOwnProperty(key)) {
       // var cleanedRefs = removeDuplicatesFrom(dict.street_names[key].sort(),key)
-      cleanedHighways.concat(removeDuplicatesFrom(dict.street_names[key].sort(),key))
+      cleanedHighways = cleanedHighways.concat(removeDuplicatesFrom(dict.street_names[key].sort(),key))
 
-      console.log(cleanedHighways)
     }
   }
   console.log(inspect(cleanedHighways))
