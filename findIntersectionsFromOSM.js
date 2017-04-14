@@ -133,9 +133,9 @@ var fromWays = (result) => {
 
     }
   }
-  console.log(inspect(cleanedHighways))
+  // console.log(inspect(cleanedHighways))
   console.log(`${highways.length} ways`);
-  return highways
+  return cleanedHighways
 
 }
 
@@ -160,32 +160,32 @@ var fromNodes = (result) => {
 }
 
 
-var findIntersections = (ways,nodes) => {
+var findIntersections = (refs,nodes) => {
   /* takes highway refs and nodes, finds intersections*/
-  console.log(`Finding intersections from ${ways.length} ways and ${nodes.length} nodes`);
+  console.log(`Finding intersections from ${refs.length} ways and ${nodes.length} nodes`);
   //each way is composed of nodes.
   //find ways that share the same reference to a node.
-  var refs = [] //
+  var cleanedRefs = []
 
-  var sorted_arr = fromNodeReferencesFrom(ways) //stores sorted arr of node refs from low to high
-  // console.log(sorted_arr)
+  var sorted_arr = refs.sort() //stores sorted arr of node refs from low to high
+  console.log(sorted_arr)
   for (var i = 0; i < sorted_arr.length - 1; i++) {
     //this loop finds adjacent refs from sorted_arr,
     if (sorted_arr[i + 1] == sorted_arr[i]) {
         //those are likely intersections bc they are the same.
-        refs.push(sorted_arr[i]); //store them in refs
+        cleanedRefs.push(sorted_arr[i]); //store them in refs
     }
   }
 
   var intersections = [] //store intersections
   //find the node lat and lon from the intersecting node refence
   nodes.forEach( (node) => {
-    refs.forEach( ref => {if( node.id == ref){intersections.push(node)}})
+    cleanedRefs.forEach( ref => {if( node.id == ref){intersections.push(node)}})
   })
 
   //then, pull the lat/long from that node reference
 
-  // console.log(intersections.length)
+  console.log(intersections.length)
   return intersections //return the intersections
 
 }
