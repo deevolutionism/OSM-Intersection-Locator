@@ -32,7 +32,7 @@ var dict = {'street_names':{}}
 var cleanedHighways = []
 
 // read .osm file
-fs.readFile('../data/map.osm', function(err, data) {
+fs.readFile('../data/hanoverstreet.osm', function(err, data) {
   /* returns intersections output */
 
     //xml to json
@@ -50,8 +50,8 @@ fs.readFile('../data/map.osm', function(err, data) {
 
 var getLatLon = (intersections) => {
   /* returns lat lon coordinates */
-  console.log('intersections:')
-  console.log(intersections)
+  // console.log('intersections:')
+  // console.log(intersections)
   var count = 0
   var latlonlist = ''
   intersections.forEach( (intersection) => {
@@ -80,7 +80,7 @@ var fromWays = (result) => {
           if(tag.$.v == 'primary' || tag.$.v == 'secondary' ||
              tag.$.v == 'motorway' || tag.$.v == 'trunk' ||
              tag.$.v == 'tertiary' || tag.$.v == 'residential' ||
-             tag.$.v == 'service' || tag.$.v == 'unclassified' ||
+             tag.$.v == 'service' ||
              tag.$.v == 'road' || tag.$.v == 'living_street'
            ) {
              highways.push(way);
@@ -102,7 +102,7 @@ var fromWays = (result) => {
       for(var i = 0; i<highway.tag.length;i++){
         if(highway.tag[i].$.k == 'name'){
           var street_name = highway.tag[i].$.v
-          console.log(street_name)
+          // console.log(street_name)
           if(dict.street_names[street_name] == undefined){
               //street isn't in the dictionary yet, so add it.
               dict.street_names[street_name] = []
@@ -123,18 +123,18 @@ var fromWays = (result) => {
     }
   })
 
-  // console.log(inspect(dict))
-  //sort each highway and remove any duplicates
-  // var cleanedHighways = dict.street_names.map( (street)=>{ removeDuplicatesFrom(street) })
+  console.log(inspect(dict.street_names['Hanover Street'].sort()))
+  //sort each highway and remove any duplicate node references
   for (var key in dict.street_names) {
     if (dict.street_names.hasOwnProperty(key)) {
-      // var cleanedRefs = removeDuplicatesFrom(dict.street_names[key].sort(),key)
+      
       cleanedHighways = cleanedHighways.concat(removeDuplicatesFrom(dict.street_names[key].sort(),key))
 
     }
   }
   // console.log(inspect(cleanedHighways))
   console.log(`${highways.length} ways`);
+  console.log(inspect(cleanedHighways))
   return cleanedHighways
 
 }
@@ -161,17 +161,17 @@ var fromNodes = (result) => {
 
 
 var findIntersections = (refs,nodes) => {
-  /* takes highway refs and nodes, finds intersections*/
+  /* takes arrays of highway node refs and actual nodes, finds intersections*/
   console.log(`Finding intersections from ${refs.length} ways and ${nodes.length} nodes`);
   //each way is composed of nodes.
   //find ways that share the same reference to a node.
   var cleanedRefs = []
 
-  var sorted_arr = refs.sort() //stores sorted arr of node refs from low to high
-  console.log(sorted_arr)
-  for (var i = 0; i < sorted_arr.length - 1; i++) {
+  var sorted_refs = refs.sort() //stores sorted arr of node refs from low to high
+  // console.log(sorted_arr)
+  for (var i = 0; i < sorted_refs.length - 1; i++) {
     //this loop finds adjacent refs from sorted_arr,
-    if (sorted_arr[i + 1] == sorted_arr[i]) {
+    if (sorted_refs[i + 1] == sorted_refs[i]) {
         //those are likely intersections bc they are the same.
         cleanedRefs.push(sorted_arr[i]); //store them in refs
     }
@@ -206,10 +206,16 @@ var removeDuplicatesFrom = (street_node_refs,street_name) => {
     i++
   }
 
+  if(street_name == 'Hanover Street'){
+  console.log(`These are the remaining node references from ${street_name}`)
+  console.log(newArr)
+}
+
   // console.log(street_node_refs.length)
   // console.log('===========')
   // console.log(newArr.length)
   console.log(`removed ${street_node_refs.length - newArr.length} duplicates from ${street_name}`)
+  console.log('-------------')
   return newArr
 }
 
