@@ -43,7 +43,6 @@ fs.readFile('../data/hanoverstreet.osm', function(err, data) {
         //   if (err) throw err;
         //   console.log('It\'s saved!');
         // });
-
     });
 });
 
@@ -232,19 +231,3 @@ var fromNodeReferencesFrom = (ways) => {
 
   return nodeReferences.splice().sort()
 }
-
-// var removeDuplicates = (obj) =>{
-//   var newArr = []
-//
-//   var i = 1;
-//   for(var j = 0; j<nodes.length;j++){
-//     //skip matching numbers
-//     if( nodes[i] != nodes[j]){
-//       //if the next number is differnt from the previous, add it.
-//       newArr.push(nodes[j])
-//     }
-//     i++
-//   }
-//
-//   return newArr
-// }
