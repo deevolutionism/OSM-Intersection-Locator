@@ -9,20 +9,20 @@ const path = require('path')
 const parser = new xml2js.Parser()
 
 
-const IntersectionFinder = (() => {
+const intersectionFinder = ( () => {
 
 	var data = {},
 		maxFileSizeInMegaBytes = 100,
 		dict = {'street_names':{}},
 		cleanedHighways = []
 
-	const parseFile = (file) => {
+	const parseFile = file => {
 		/* 
 		initial function that parses the osm file
 		and returns intersections
 		*/
 
-		fs.readFile(file, function(err, data) {
+		fs.readFile(file, (err, data) => {
 			if(err){
 				console.error('error reading file')
 			} else {
@@ -34,7 +34,7 @@ const IntersectionFinder = (() => {
 		})
 	}
 
-	const getLatLon = (intersections) => {
+	const getLatLon = intersections => {
 		/* 
 		Returns latitude and longitude from each intersection
 		*/
@@ -96,37 +96,79 @@ const IntersectionFinder = (() => {
 
 	}
 
-	const ways = (result) => {
+	const ways = result => {
 		/*
 		Sorts through ways to find only highways of certain types.
 		A highway is any
 
 		*/
 		var highways = []
-		var ways = result.osm.way
 
 		highways.reduce
 
-		ways.forEach( way => {
+		result.osm.way.forEach( way => {
+			//store all the ways which contain some
+			//form of highway data
 			if(way.tag){
 				if(way.tag.find(highway) != undefined){
-					highways.push(way)
+					if(way.tag.find(highwaytype)){
+						highways.push(way)
+					}
 				}
 			}
 		}) 
 
-		// highways.forEach( highway => {
-		// 	if(highway.tag){
-		// 		highway.find(streetname)
-		// 	}
-		// })
+		highways.forEach( highway => {
+		    if(highway.tag){
+		      for(var i = 0; i<highway.tag.length;i++){
+		        if(highway.tag[i].$.k == 'name'){
+		          var street_name = highway.tag[i].$.v
+		          // console.log(street_name)
+		          if(dict.street_names[street_name] == undefined){
+		              //street isn't in the dictionary yet, so add it.
+		              dict.street_names[street_name] = []
+		              // console.log(inspect(dict))
+		              highway.nd.forEach( obj => {
+		                dict.street_names[street_name].push(obj.$.ref)
+		              })
+		          } else {
+		            //street already exists in dictionary, add node refs to it.
+		            if(highway.nd){
+		              highway.nd.forEach( obj => {
+		                dict.street_names[street_name].push(obj.$.ref)
+		              })
+		            }
+		          }
+		        }
+		      }
+		    }
+		})
+
+		console.log(inspect(dict.street_names['Hanover Street'].sort()))
+	    //sort each highway and remove any duplicate node references
+	    for (var key in dict.street_names) {
+	    if (dict.street_names.hasOwnProperty(key)) {
+	      
+	        cleanedHighways = cleanedHighways.concat(removeDuplicatesFrom(dict.street_names[key].sort(),key))
+
+	        }
+	    }
+	    // console.log(inspect(cleanedHighways))
+	    console.log(`${highways.length} ways`);
+	    console.log(inspect(cleanedHighways))
+	    return cleanedHighways
+
 	}
 
-	const streetname = (street) => {
+	const streetname = street => {
 		return street == 'name'
 	}
 
-	const highway = (item) => {
+	const highway = tag => {
+		return tag.$.k === 'highway'
+	}
+
+	const highwaytype = tag => {
 		return
 			tag.$.v == 'primary' 		|| 
 			tag.$.v == 'secondary' 		||
@@ -137,10 +179,57 @@ const IntersectionFinder = (() => {
             tag.$.v == 'service' 		||
             tag.$.v == 'road' 			|| 
             tag.$.v == 'living_street'
-		}
 	}
 
-	const fileSize = (file) => {
+	const fromNodes = result => {
+		
+		var nodes = []
+
+		result.osm.node.forEach( node => {
+
+		    nodes.push({
+		      id:node.$.id,
+		      lat:node.$.lat,
+		      lon:node.$.lon
+		    })
+
+  		})
+
+  		console.log(`${nodes.length} nodes`)
+
+  		return nodes
+	}
+
+	const removeDuplicatesFrom = (street_node_refs, street_name) => {
+		var newArr = []
+
+		var i = 1;
+		for(var j = 0; j < street_node_refs.length; j++){
+			if(street_node_refs[i] != street_node_refs[j]){
+				newArr.push(street_node_refs[j])
+			}
+			i++
+		}
+
+		console.log(`removed ${street_node_refs.length - newArr.length} duplicates from ${street_name}`)
+  		console.log('-------------')
+		return newArr
+	}
+
+	const fromNodeReferencesFrom = ways => {
+
+		var nodeReferences = []
+
+		ways.forEach( way => {
+			way.nd.forEach( nodeReference => {
+				nodeReferences.push(nodeReferences.$.ref)
+			})
+		})
+
+		return nodeReferences.splice().sort()
+	}
+
+	const fileSize = file => {
 		/*
 		checks file size. This is temporary while streams are integrated.
 		*/
@@ -153,7 +242,7 @@ const IntersectionFinder = (() => {
 
 	return {
 
-		findIntersections: (path_to_file) => {
+		findIntersections: path_to_file => {
 			//check file type
 			if(path.extname(path_to_file) !== '.osm'){
 				return console.log('file type must be .osm')
@@ -168,4 +257,6 @@ const IntersectionFinder = (() => {
 
 })()
 
-intersectionFinder.findIntersections('')
+
+
+intersectionFinder.findIntersections('../data/map.osm')
