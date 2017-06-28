@@ -6,17 +6,17 @@ const inspect = require('eyes').inspector({maxLength: false})
 const _ = require('lodash');
 const path = require('path')
 
-var parser = new xml2js.Parser()
+const parser = new xml2js.Parser()
 
 
-var IntersectionFinder = (() => {
+const IntersectionFinder = (() => {
 
 	var data = {},
 		maxFileSizeInMegaBytes = 100,
 		dict = {'street_names':{}},
 		cleanedHighways = []
 
-	var parseFile = (file) => {
+	const parseFile = (file) => {
 		/* 
 		initial function that parses the osm file
 		and returns intersections
@@ -34,7 +34,7 @@ var IntersectionFinder = (() => {
 		})
 	}
 
-	var getLatLon = (intersections) => {
+	const getLatLon = (intersections) => {
 		/* 
 		Returns latitude and longitude from each intersection
 		*/
@@ -43,7 +43,7 @@ var IntersectionFinder = (() => {
 		latlonglist = ''
 
 
-		intersections.forEach( (intersection) => {
+		intersections.forEach( intersection => {
 			let latlon = `${intersection.lat}, ${intersection.lon}`
 			//print the final output to console
 			// THIS NEEDS TO WRITE TO A FILE? MAYBE? 
@@ -55,7 +55,7 @@ var IntersectionFinder = (() => {
 		return latlonlist
 	}
 
-	var findIntersections = (node_references, nodes) => {
+	const findIntersections = (node_references, nodes) => {
 		/* 
 		takes an array of highway node references and an array of actual nodes
 		and searches for intersections. An intersection is found if any 2 or more ways
@@ -96,7 +96,51 @@ var IntersectionFinder = (() => {
 
 	}
 
-	var fileSize = (file) => {
+	const ways = (result) => {
+		/*
+		Sorts through ways to find only highways of certain types.
+		A highway is any
+
+		*/
+		var highways = []
+		var ways = result.osm.way
+
+		highways.reduce
+
+		ways.forEach( way => {
+			if(way.tag){
+				if(way.tag.find(highway) != undefined){
+					highways.push(way)
+				}
+			}
+		}) 
+
+		// highways.forEach( highway => {
+		// 	if(highway.tag){
+		// 		highway.find(streetname)
+		// 	}
+		// })
+	}
+
+	const streetname = (street) => {
+		return street == 'name'
+	}
+
+	const highway = (item) => {
+		return
+			tag.$.v == 'primary' 		|| 
+			tag.$.v == 'secondary' 		||
+            tag.$.v == 'motorway' 		|| 
+            tag.$.v == 'trunk' 			||
+            tag.$.v == 'tertiary' 		|| 
+            tag.$.v == 'residential'	||
+            tag.$.v == 'service' 		||
+            tag.$.v == 'road' 			|| 
+            tag.$.v == 'living_street'
+		}
+	}
+
+	const fileSize = (file) => {
 		/*
 		checks file size. This is temporary while streams are integrated.
 		*/
@@ -124,4 +168,4 @@ var IntersectionFinder = (() => {
 
 })()
 
-intersectionFinder.findIntersections()
+intersectionFinder.findIntersections('')

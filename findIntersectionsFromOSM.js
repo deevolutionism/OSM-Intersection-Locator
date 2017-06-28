@@ -96,6 +96,7 @@ var fromWays = (result) => {
     ...
   }
   */
+  
   highways.forEach( (highway) => {
     if(highway.tag){
       for(var i = 0; i<highway.tag.length;i++){
