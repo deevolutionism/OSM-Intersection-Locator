@@ -21,14 +21,13 @@ const intersectionFinder = ( () => {
 		initial function that parses the osm file
 		and returns intersections
 		*/
-
 		fs.readFile(file, (err, data) => {
 			if(err){
 				console.error('error reading file')
 			} else {
 				//use xml2json to parse osm
 				parser.parseString(data, (err, result) => {
-					getLatLon(findIntersection(fromWays(result),fromNodes(result)))
+					getLatLon(findIntersections(fromWays(result),fromNodes(result)))
 				})
 			}
 		})
@@ -40,7 +39,7 @@ const intersectionFinder = ( () => {
 		*/
 
 		let count = 0,
-		latlonglist = ''
+		latlonlist = ''
 
 
 		intersections.forEach( intersection => {
@@ -96,27 +95,42 @@ const intersectionFinder = ( () => {
 
 	}
 
-	const ways = result => {
+	const fromWays = result => {
 		/*
 		Sorts through ways to find only highways of certain types.
 		A highway is any
-
 		*/
+
 		var highways = []
+		var ways = result.osm.way
+		// highways.reduce
 
-		highways.reduce
+		// result.osm.way.forEach( way => {
+		// 	//store all the ways which contain some
+		// 	//form of highway data
+		// 	if(way.tag){
+		// 		if(way.tag.find(highway) != undefined){
+		// 			if(way.tag.find(highwaytype)){
+		// 				console.log(way)
+		// 				highways.push(way)
+		// 			}
+		// 		}
+		// 	}
+		// }) 
 
-		result.osm.way.forEach( way => {
-			//store all the ways which contain some
-			//form of highway data
-			if(way.tag){
-				if(way.tag.find(highway) != undefined){
-					if(way.tag.find(highwaytype)){
-						highways.push(way)
-					}
-				}
-			}
-		}) 
+		ways.forEach( ( way ) => {
+		    if(way.tag){
+		      way.tag.forEach( ( tag ) => {
+		        if(tag.$.k == 'highway'){
+		          if(tag.$.v == 'primary' || tag.$.v == 'secondary' ||
+		             tag.$.v == 'motorway' || tag.$.v == 'trunk' ||
+		             tag.$.v == 'tertiary' || tag.$.v == 'residential' ||
+		             tag.$.v == 'service' ||
+		             tag.$.v == 'road' || tag.$.v == 'living_street'
+		           ) {
+		             highways.push(way);
+		            //  console.log(way)
+		  }}});}});
 
 		highways.forEach( highway => {
 		    if(highway.tag){
@@ -144,7 +158,7 @@ const intersectionFinder = ( () => {
 		    }
 		})
 
-		console.log(inspect(dict.street_names['Hanover Street'].sort()))
+		// console.log(inspect(dict.street_names['Hanover Street'].sort()))
 	    //sort each highway and remove any duplicate node references
 	    for (var key in dict.street_names) {
 	    if (dict.street_names.hasOwnProperty(key)) {
@@ -233,7 +247,7 @@ const intersectionFinder = ( () => {
 		/*
 		checks file size. This is temporary while streams are integrated.
 		*/
-		const stats = fs.statSync("myfile.txt")
+		const stats = fs.statSync(file)
 		const fileSizeInBytes = stats.size
 		//Convert the file size to megabytes
 		const fileSizeInMegabytes = fileSizeInBytes / 1000000.0
