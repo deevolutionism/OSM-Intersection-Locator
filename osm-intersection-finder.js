@@ -3,11 +3,10 @@ const fs = require('fs');
 const xml2js = require('xml2js')
 const util = require('util')
 const inspect = require('eyes').inspector({maxLength: false})
-const _ = require('lodash');
+const _ = require('lodash')
 const path = require('path')
 
 const parser = new xml2js.Parser()
-
 
 const intersectionFinder = ( () => {
 
@@ -46,7 +45,8 @@ const intersectionFinder = ( () => {
 			let latlon = `${intersection.lat}, ${intersection.lon}`
 			//print the final output to console
 			// THIS NEEDS TO WRITE TO A FILE? MAYBE? 
-			console.log(latlon)
+			// console.log(latlon)
+			// console.log(dict)
 			count++
 			latlonlist += latlon
 		})
@@ -60,7 +60,7 @@ const intersectionFinder = ( () => {
 		and searches for intersections. An intersection is found if any 2 or more ways
 		share the same node reference.
 		*/
-		console.log(`Finding intersections from ${node_references.length} ways and ${nodes.length} nodes`)
+		// console.log(`Finding intersections from ${node_references.length} ways and ${nodes.length} nodes`)
 
 		var cleaned_references = []
 
@@ -130,18 +130,20 @@ const intersectionFinder = ( () => {
 		           ) {
 		             highways.push(way);
 		            //  console.log(way)
-		  }}});}});
+		}}});}});
+
+		console.log(inspect(highways))
 
 		highways.forEach( highway => {
 		    if(highway.tag){
 		      for(var i = 0; i<highway.tag.length;i++){
 		        if(highway.tag[i].$.k == 'name'){
 		          var street_name = highway.tag[i].$.v
-		          // console.log(street_name)
+		          console.log(street_name)
 		          if(dict.street_names[street_name] == undefined){
 		              //street isn't in the dictionary yet, so add it.
 		              dict.street_names[street_name] = []
-		              // console.log(inspect(dict))
+		              console.log(inspect(dict))
 		              highway.nd.forEach( obj => {
 		                dict.street_names[street_name].push(obj.$.ref)
 		              })
@@ -149,7 +151,8 @@ const intersectionFinder = ( () => {
 		            //street already exists in dictionary, add node refs to it.
 		            if(highway.nd){
 		              highway.nd.forEach( obj => {
-		                dict.street_names[street_name].push(obj.$.ref)
+		              
+		               dict.street_names[street_name].push(obj.$.ref)
 		              })
 		            }
 		          }
@@ -168,8 +171,8 @@ const intersectionFinder = ( () => {
 	        }
 	    }
 	    // console.log(inspect(cleanedHighways))
-	    console.log(`${highways.length} ways`);
-	    console.log(inspect(cleanedHighways))
+	    // console.log(`${highways.length} ways`);
+	    // console.log(inspect(cleanedHighways))
 	    return cleanedHighways
 
 	}
@@ -209,14 +212,14 @@ const intersectionFinder = ( () => {
 
   		})
 
-  		console.log(`${nodes.length} nodes`)
+  		// console.log(`${nodes.length} nodes`)
 
   		return nodes
 	}
 
 	const removeDuplicatesFrom = (street_node_refs, street_name) => {
 		var newArr = []
-
+		
 		var i = 1;
 		for(var j = 0; j < street_node_refs.length; j++){
 			if(street_node_refs[i] != street_node_refs[j]){
@@ -225,8 +228,8 @@ const intersectionFinder = ( () => {
 			i++
 		}
 
-		console.log(`removed ${street_node_refs.length - newArr.length} duplicates from ${street_name}`)
-  		console.log('-------------')
+		// console.log(`removed ${street_node_refs.length - newArr.length} duplicates from ${street_name}`)
+  		// console.log('-------------')
 		return newArr
 	}
 
@@ -265,12 +268,12 @@ const intersectionFinder = ( () => {
 			} else {
 				parseFile(path_to_file)
 			}
-		} 
+		}
 
 	}
 
 })()
 
-
-
-intersectionFinder.findIntersections('../data/map.osm')
+module.exports = function(path) {
+    return intersectionFinder.findIntersections(path)
+};

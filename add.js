@@ -1,6 +1,7 @@
 'use strict'
 var path = require('path')
 var fs = require('fs')
+
 /**
  * Adds commas to a number
  * @param {number} number
